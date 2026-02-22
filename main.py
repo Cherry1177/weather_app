@@ -15,6 +15,19 @@ def safe_get(url,params):
         print('Error retrieving data')
         exit()
 
+def weather_icon(code):
+    icons = {
+        0: "☀️",   # Clear sky
+        1: "🌤️", 2: "⛅", 3: "☁️",   # Cloudy
+        45: "🌫️", 48: "🌫️",        # Fog
+        51: "🌦️", 53: "🌦️", 55: "🌦️",  # Drizzle
+        61: "🌧️", 63: "🌧️", 65: "🌧️",  # Rain
+        71: "🌨️", 73: "🌨️", 75: "❄️",  # Snow
+        80: "🌦️", 81: "🌧️", 82: "🌧️",  # Showers
+        95: "⛈️", 96: "⛈️", 99: "⛈️"   # Thunderstorm
+    }
+    return icons.get(code, "🌡️")
+
 city = input("Enter your city: ").strip() or "Kathmandu"
 geo_url="https://geocoding-api.open-meteo.com/v1/search"
 wx_url="https://api.open-meteo.com/v1/forecast"
@@ -46,7 +59,7 @@ wx_params = {
     "longitude": lon,
     "current_weather": True,
     "timezone": "auto",
-    "daily" : ["temperature_2m_max", "temperature_2m_min"],
+    "daily" : ["weathercode","temperature_2m_max", "temperature_2m_min"],
     "forecast_days" : 3
 }
 
@@ -60,10 +73,15 @@ daily = wx.get("daily", {})
 dates = daily.get("time", []) or []
 tmax = daily.get("temperature_2m_max", []) or []
 tmin = daily.get("temperature_2m_min", []) or []
+codes = daily.get("weathercode", []) or []
 
 print("3-day Forecast:")
-for d, lo, hi in zip(dates, tmin, tmax):
-    print(f"{d}: {lo:.1f}°C → {hi:.1f}°C")
+print()
+# for d, lo, hi in zip(dates, tmin, tmax):
+#     print(f"{d}: {lo:.1f}°C → {hi:.1f}°C")
+for d, lo, hi, c in zip(dates[:3], tmin[:3], tmax[:3], codes[:3]):
+    icon = weather_icon(c)
+    print(f"{icon} {d}: {lo:.1f}°C → {hi:.1f}°C")
 
-summary_line = temp_now
-print(f"Current temp: {summary_line}")
+code_now = cw.get("weathercode")
+print(f"\nNow: {weather_icon(code_now)} {temp_now:.1f}°C")
