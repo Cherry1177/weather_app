@@ -29,6 +29,7 @@ def weather_icon(code):
     return icons.get(code, "🌡️")
 
 city = input("Enter your city: ").strip() or "Kathmandu"
+unit = input("Choose unit (C/F): ").strip().upper() or "C"
 geo_url="https://geocoding-api.open-meteo.com/v1/search"
 wx_url="https://api.open-meteo.com/v1/forecast"
 
@@ -39,11 +40,9 @@ params = {
     "format" : "json"
 }
 
-# r= requests.get(geo_url, params, timeout=5)
 r = safe_get(geo_url, params)
 
 data = r.json()
-# print("Raw geocoding JSON:", data)
 
 if(not data.get("results")):
     print("City not found.")
@@ -54,12 +53,16 @@ top = data["results"][0]
 lat, lon = top["latitude"], top["longitude"]
 print("Coords:", lat, lon)
 
+temp_unit = "fahrenheit" if unit == "F" else "celsius"
+unit_symbol = "°F" if unit == "F" else "°C"
+
 wx_params = {
     "latitude": lat,
     "longitude": lon,
     "current_weather": True,
     "timezone": "auto",
     "daily" : ["weathercode","temperature_2m_max", "temperature_2m_min"],
+    "temperature_unit": temp_unit,
     "forecast_days" : 3
 }
 
@@ -77,11 +80,12 @@ codes = daily.get("weathercode", []) or []
 
 print("3-day Forecast:")
 print()
-# for d, lo, hi in zip(dates, tmin, tmax):
-#     print(f"{d}: {lo:.1f}°C → {hi:.1f}°C")
 for d, lo, hi, c in zip(dates[:3], tmin[:3], tmax[:3], codes[:3]):
     icon = weather_icon(c)
-    print(f"{icon} {d}: {lo:.1f}°C → {hi:.1f}°C")
+    print(f"{icon} {d}: {fmt(lo)}{unit_symbol} → {fmt(hi)}{unit_symbol}")
 
+cw = wx.get("current_weather", {})
+temp_now = cw.get("temperature")
 code_now = cw.get("weathercode")
-print(f"\nNow: {weather_icon(code_now)} {temp_now:.1f}°C")
+
+print(f"\nNow: {weather_icon(code_now)} {fmt(temp_now)}{unit_symbol}")
