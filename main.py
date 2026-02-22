@@ -30,7 +30,7 @@ params = {
 r = safe_get(geo_url, params)
 
 data = r.json()
-print("Raw geocoding JSON:", data)
+# print("Raw geocoding JSON:", data)
 
 if(not data.get("results")):
     print("City not found.")
@@ -45,7 +45,9 @@ wx_params = {
     "latitude": lat,
     "longitude": lon,
     "current_weather": True,
-    "timezone": "auto"
+    "timezone": "auto",
+    "daily" : ["temperature_2m_max", "temperature_2m_min"],
+    "forecast_days" : 3
 }
 
 w = safe_get(wx_url, params=wx_params)
@@ -54,5 +56,14 @@ wx = w.json()
 cw = wx.get("current_weather" , {})
 temp_now = cw.get("temperature")
 
+daily = wx.get("daily", {})
+dates = daily.get("time", []) or []
+tmax = daily.get("temperature_2m_max", []) or []
+tmin = daily.get("temperature_2m_min", []) or []
+
+print("3-day Forecast:")
+for d, lo, hi in zip(dates, tmin, tmax):
+    print(f"{d}: {lo:.1f}°C → {hi:.1f}°C")
+
 summary_line = temp_now
-print(summary_line)
+print(f"Current temp: {summary_line}")
