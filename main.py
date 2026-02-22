@@ -1,4 +1,14 @@
+# Things to improve later
+# Geocoding the city (name → coordinates)
+# Fetching the weather (coordinates → data)
+# Formatting the temperature (number → display)
 import requests
+
+def fmt(v):
+   try:
+     return f"{float(v):.1f}"
+   except (TypeError, ValueError):
+     return "?"
 
 city = input("Enter your city: ").strip() or "Kathmandu"
 geo_url="https://geocoding-api.open-meteo.com/v1/search"
@@ -14,9 +24,7 @@ params = {
 r= requests.get(geo_url, params, timeout=5)
 
 data = r.json()
-print()
-print("Raw geocoding JSON:", data)
-print()
+# print("Raw geocoding JSON:", data)
 
 if(not data.get("results")):
     print("City not found.")
@@ -40,5 +48,5 @@ wx = w.json()
 cw = wx.get("current_weather" , {})
 temp_now = cw.get("temperature")
 
-summary_line = f"{city}: {temp_now}°C"
+summary_line = temp_now
 print(summary_line)
