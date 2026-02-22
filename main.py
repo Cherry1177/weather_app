@@ -1,7 +1,3 @@
-# Things to improve later
-# Geocoding the city (name → coordinates)
-# Fetching the weather (coordinates → data)
-# Formatting the temperature (number → display)
 import requests
 
 def fmt(v):
@@ -9,6 +5,15 @@ def fmt(v):
      return f"{float(v):.1f}"
    except (TypeError, ValueError):
      return "?"
+
+def safe_get(url,params):
+    try:
+        r = requests.get(url, params=params, timeout=8)
+        r.raise_for_status()
+        return r
+    except requests.RequestException:
+        print('Error retrieving data')
+        exit()
 
 city = input("Enter your city: ").strip() or "Kathmandu"
 geo_url="https://geocoding-api.open-meteo.com/v1/search"
@@ -21,10 +26,11 @@ params = {
     "format" : "json"
 }
 
-r= requests.get(geo_url, params, timeout=5)
+# r= requests.get(geo_url, params, timeout=5)
+r = safe_get(geo_url, params)
 
 data = r.json()
-# print("Raw geocoding JSON:", data)
+print("Raw geocoding JSON:", data)
 
 if(not data.get("results")):
     print("City not found.")
@@ -42,7 +48,7 @@ wx_params = {
     "timezone": "auto"
 }
 
-w = requests.get(wx_url, params=wx_params, timeout=5)
+w = safe_get(wx_url, params=wx_params)
 wx = w.json()
 
 cw = wx.get("current_weather" , {})
